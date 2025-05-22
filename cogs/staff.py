@@ -42,7 +42,7 @@ class Staff(commands.Cog):
                 self.selected = []
 
                 self.select = discord.ui.Select(
-                    placeholder="Velg hvem som skal unngås (kan velge flere)",
+                    placeholder="Hvem skal ikke bli med? (Ja, Snip du kan velge flere)",
                     min_values=0,
                     max_values=len(members),
                     options=[
@@ -55,7 +55,7 @@ class Staff(commands.Cog):
 
             async def select_callback(self, interaction: discord.Interaction):
                 self.selected = self.select.values
-                await interaction.response.defer()  # Acknowledge interaction to avoid failure
+                await interaction.response.defer() 
                 await interaction.message.delete()
                 self.stop()
 
@@ -69,7 +69,7 @@ class Staff(commands.Cog):
                     options=[
                         discord.SelectOption(label="Unngå visse i staff", value="avoid"),
                         discord.SelectOption(label="Ikke unngå noen", value="no_avoid"),
-                        discord.SelectOption(label="Ingen", value="ingen")  # Legger til "Ingen"
+                        discord.SelectOption(label="Glem det!", value="Glem det!")  
                     ]
                 )
                 self.select.callback = self.select_callback
@@ -77,10 +77,9 @@ class Staff(commands.Cog):
 
             async def select_callback(self, interaction: discord.Interaction):
                 self.choice = self.select.values[0]
-                await interaction.response.defer()  # Acknowledge interaction to avoid failure
+                await interaction.response.defer() 
 
-                # Hvis "Ingen" valgt, slett meldingen og stopp flow
-                if self.choice == "ingen":
+                if self.choice == "Glem det!":
                     await interaction.message.delete()
                     self.stop()
                     return
@@ -101,8 +100,8 @@ class Staff(commands.Cog):
         if not mode_view.choice:
             return  # Timeout
 
-        if mode_view.choice == "ingen":
-            return  # Avslutt uten å gjøre noe mer hvis "Ingen" valgt
+        if mode_view.choice == "Glem det!":
+            return  
 
         # Trinn 2: Hent hvem som skal unngås (valgfritt)
         avoid_ids = []
@@ -114,10 +113,10 @@ class Staff(commands.Cog):
                     all_staff_members.update(role.members)
 
             if not all_staff_members:
-                return await ctx.send("Fant ingen medlemmer i staff-roller.")
+                return await ctx.send("Merker jeg fant ingen, her trengs det litt bug test")
 
             avoid_view = RoleSelector(list(all_staff_members))
-            avoid_msg = await ctx.send("Velg hvilke personer som skal unngås:", view=avoid_view)
+            avoid_msg = await ctx.send("Innhabil? Da velger du hvem her.:", view=avoid_view)
             await avoid_view.wait()
 
             try:
@@ -135,7 +134,7 @@ class Staff(commands.Cog):
 
         embed = discord.Embed(
             title="**PERME SØKNAD** Staff som er valgt ut",
-            description="Disse er valgt til å lese søknader.",
+            description="Be Aasbu hente lese brillene, **Disse er valgt til å lese søknaden** MASHALLA.",
             color=discord.Color.from_str("#00B7B3")
         )
         embed.set_footer(text=dato_tekst)
@@ -148,7 +147,7 @@ class Staff(commands.Cog):
             count = 2 if title != "Eier" else 1
             chosen = random.sample(members, min(len(members), count)) if members else []
             lines = [f"{i+1}. {m.mention}" for i, m in enumerate(chosen)]
-            embed.add_field(name=f"**{title}**", value="\n".join(lines) if lines else "Ingen valgt", inline=False)
+            embed.add_field(name=f"**{title}**", value="\n".join(lines) if lines else "Fuck, ingen valgt.", inline=False)
 
         await ctx.send(embed=embed)
 
