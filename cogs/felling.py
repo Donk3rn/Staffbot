@@ -10,9 +10,9 @@ class Felling(commands.Cog):
         embed1 = discord.Embed(
             title="Felling – Fremgangsmåte",
             description=(
-                "Vi oppretter en ticket der syv tilfeldige fra teamet blir valgt ut.\n\n"  # Første avsnitt
-                "Disse må være moderator, Senior moderator, administrator og eier.\n\n"   # Eget avsnitt
-                "De utvalgte ser så på søknaden og tar en avgjørelse."                     # Tredje avsnitt
+                "Vi oppretter en ticket der syv tilfeldige fra teamet blir valgt ut.\n\n"  
+                "Disse må være moderator, Senior moderator, administrator og eier.\n"   
+                "De utvalgte ser så på søknaden og tar en avgjørelse."
             ),
             color=discord.Color.from_str("#00B7B3")
 )
