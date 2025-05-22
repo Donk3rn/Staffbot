@@ -29,6 +29,7 @@ async def on_ready():
 async def main():
     async with bot:
         await load_cogs()
+        print("Cogs lastet inn:", bot.cogs.keys())
         await bot.start(TOKEN)
 
 if __name__ == "__main__":
