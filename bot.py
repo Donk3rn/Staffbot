@@ -26,12 +26,6 @@ async def main():
     await load_cogs()
     await bot.start(token)
 
-    
-@bot.command()
-async def ping(ctx):
-    await ctx.send("pong!")
-
-
 asyncio.run(main())
 
 token = os.getenv("DISCORD_TOKEN")
