@@ -20,6 +20,7 @@ bot = commands.Bot(command_prefix=".", intents=intents)
 async def load_cogs():
     # Last inn dine cogs her. For eksempel 'staff.py' i 'cogs' mappen:
     await bot.load_extension("cogs.staff")
+    await bot.load_extension("cogs.felling")
 
 @bot.event
 async def on_ready():
