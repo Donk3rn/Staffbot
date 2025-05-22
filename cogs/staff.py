@@ -7,8 +7,10 @@ ROLE_NAMES = {
     "Moderators": "Moderator",
     "Senior Moderators": "Senior Moderator",
     "Admins": "Admin",
+    "Administrator": "Administrator", 
     "Eier": "Eier"
 }
+
 
 class Staff(commands.Cog):
     def __init__(self, bot):
