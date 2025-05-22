@@ -1,10 +1,11 @@
-import os
 import discord
 from discord.ext import commands
+import os
 from dotenv import load_dotenv
 import asyncio
 
 load_dotenv()
+TOKEN = os.getenv("DISCORD_TOKEN")
 
 intents = discord.Intents.default()
 intents.members = True
@@ -14,13 +15,16 @@ bot = commands.Bot(command_prefix=".", intents=intents)
 
 @bot.event
 async def on_ready():
-    print(f"Logget inn som {bot.user}!")
+    print(f'✅ Logget inn som {bot.user}!')
+
+async def load_extensions():
+    for filename in os.listdir("./cogs"):
+        if filename.endswith(".py"):
+            await bot.load_extension(f"cogs.{filename[:-3]}")
 
 async def main():
     async with bot:
-        await bot.load_extension("cogs.staff")
-        await bot.load_extension("cogs.felling")
-        await bot.start(os.getenv("DISCORD_TOKEN"))
+        await load_extensions()
+        await bot.start(TOKEN)
 
-if __name__ == "__main__":
-    asyncio.run(main())
+asyncio.run(main())
