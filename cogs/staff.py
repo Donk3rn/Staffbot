@@ -55,6 +55,7 @@ class Staff(commands.Cog):
 
             async def select_callback(self, interaction: discord.Interaction):
                 self.selected = self.select.values
+                await interaction.response.defer()  # Acknowledge interaction to avoid failure
                 await interaction.message.delete()
                 self.stop()
 
@@ -68,7 +69,7 @@ class Staff(commands.Cog):
                     options=[
                         discord.SelectOption(label="Unngå visse i staff", value="avoid"),
                         discord.SelectOption(label="Ikke unngå noen", value="no_avoid"),
-                        discord.SelectOption(label="Ingen", value="none")
+                        discord.SelectOption(label="Ingen", value="ingen")  # Legger til "Ingen"
                     ]
                 )
                 self.select.callback = self.select_callback
@@ -76,11 +77,15 @@ class Staff(commands.Cog):
 
             async def select_callback(self, interaction: discord.Interaction):
                 self.choice = self.select.values[0]
-                await interaction.message.delete()
-                # Hvis "Ingen" er valgt, stopp og avslutt uten videre
-                if self.choice == "none":
+                await interaction.response.defer()  # Acknowledge interaction to avoid failure
+
+                # Hvis "Ingen" valgt, slett meldingen og stopp flow
+                if self.choice == "ingen":
+                    await interaction.message.delete()
                     self.stop()
                     return
+
+                await interaction.message.delete()
                 self.stop()
 
         # Trinn 1: Velg modus
@@ -88,17 +93,16 @@ class Staff(commands.Cog):
         mode_msg = await ctx.send("Velg et alternativ:", view=mode_view)
         await mode_view.wait()
 
-        # Hvis bruker ikke valgte noe eller timeout
-        if not mode_view.choice:
-            try:
-                await mode_msg.delete()
-            except discord.NotFound:
-                pass
-            return
+        try:
+            await mode_msg.delete()
+        except discord.NotFound:
+            pass
 
-        # Hvis "Ingen" er valgt, avslutt tidlig uten å gjøre noe
-        if mode_view.choice == "none":
-            return
+        if not mode_view.choice:
+            return  # Timeout
+
+        if mode_view.choice == "ingen":
+            return  # Avslutt uten å gjøre noe mer hvis "Ingen" valgt
 
         # Trinn 2: Hent hvem som skal unngås (valgfritt)
         avoid_ids = []
