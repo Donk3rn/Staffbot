@@ -2,6 +2,7 @@ import os
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
+import asyncio
 
 load_dotenv()
 
@@ -15,11 +16,11 @@ bot = commands.Bot(command_prefix=".", intents=intents)
 async def on_ready():
     print(f"Logget inn som {bot.user}!")
 
-# Last inn cogs
-initial_extensions = ["cogs.staff", "cogs.felling"]
+async def main():
+    async with bot:
+        await bot.load_extension("cogs.staff")
+        await bot.load_extension("cogs.felling")
+        await bot.start(os.getenv("DISCORD_TOKEN"))
 
-for ext in initial_extensions:
-    bot.load_extension(ext)
-
-# Start botten
-bot.run(os.getenv("DISCORD_TOKEN"))
+if __name__ == "__main__":
+    asyncio.run(main())
