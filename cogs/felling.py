@@ -7,17 +7,16 @@ class Felling(commands.Cog):
 
     @commands.command()
     async def felling(self, ctx):
-        legacy_role = discord.utils.get(ctx.guild.roles, name="Legacy")
+        legacy_role = ctx.guild.get_role(805153341084008458)
         if not legacy_role:
-            return await ctx.send("Fant ikke rollen **Legacy** på serveren.")
+            return await ctx.send("Fant ikke rollen med ID 805153341084008458 på serveren.")
 
         # Hent medlemmer med rollen "Legacy"
         legacy_members = [m for m in ctx.guild.members if legacy_role in m.roles and not m.bot]
 
         if not legacy_members:
-            return await ctx.send("Fant ingen medlemmer med rollen **Legacy**.")
+            return await ctx.send("Fant ingen medlemmer med Legacy-rollen.")
 
-        # View med dropdown for å velge én person
         class MemberSelector(discord.ui.View):
             def __init__(self, members):
                 super().__init__(timeout=60)
