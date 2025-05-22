@@ -29,7 +29,6 @@ DAYS_NO = {
     "Sunday": "Søndag"
 }
 
-
 class Staff(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
