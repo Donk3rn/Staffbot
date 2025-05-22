@@ -11,7 +11,7 @@ class Felling(commands.Cog):
         title="Felling – Fremgangsmåte",
         description=(
             "Vi oppretter en ticket der syv tilfeldige fra teamet blir valgt ut.\n\n "
-            "Disse må være moderator, Senior moderator, administrator og eier.\n"  
+            "Disse må være moderator, Senior moderator, administrator og eier.\n\n"  
             "De utvalgte ser så på søknaden og tar en avgjørelse."
             ),
             color=discord.Color.from_str("#00B7B3")
