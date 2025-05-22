@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 
-class FellingCog(commands.Cog):
+class Felling(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -37,4 +37,4 @@ class FellingCog(commands.Cog):
         await ctx.send(embed=embed3)
 
 async def setup(bot):
-    await bot.add_cog(FellingCog(bot))
+    await bot.add_cog(Felling(bot))
