@@ -7,9 +7,52 @@ class Felling(commands.Cog):
 
     @commands.command()
     async def felling(self, ctx):
+        # Trinn 1: Definer view med dropdown
+        class MemberSelector(discord.ui.View):
+            def __init__(self, members):
+                super().__init__(timeout=60)
+                self.selected_id = None
+
+                options = [
+                    discord.SelectOption(label=member.display_name, value=str(member.id))
+                    for member in members if not member.bot
+                ]
+                self.select = discord.ui.Select(
+                    placeholder="Velg personen fellingen gjelder",
+                    min_values=1,
+                    max_values=1,
+                    options=options
+                )
+                self.select.callback = self.select_callback
+                self.add_item(self.select)
+
+            async def select_callback(self, interaction: discord.Interaction):
+                self.selected_id = int(self.select.values[0])
+                await interaction.message.delete()
+                self.stop()
+
+        # Trinn 2: Hent medlemmer
+        members = ctx.guild.members
+        view = MemberSelector(members)
+        msg = await ctx.send("Velg personen som fellingen gjelder:", view=view)
+        await view.wait()
+
+        # Sjekk om valgt
+        if not view.selected_id:
+            return await ctx.send("Ingen ble valgt.")
+
+        member = ctx.guild.get_member(view.selected_id)
+
+        # Trinn 3: Send embedene med mention
+        await ctx.send(f"Heisann {member.mention}, her har du litt informasjon om fellingen din.")
+
         embed1 = discord.Embed(
             title="Felling – Fremgangsmåte",
-            description="Vi oppretter en ticket der fire tilfeldige fra teamet blir valgt ut. Disse må være senior moderator, administrator eller eier. De utvalgte ser så på søknaden og tar en avgjørelse.",
+            description=(
+                "Vi oppretter en ticket der syv tilfeldige fra teamet blir valgt ut. "
+                "Disse må være moderator, senior moderator, administrator eller eier.\n"
+                "De utvalgte ser så på søknaden og tar en avgjørelse."
+            ),
             color=discord.Color.from_str("#00B7B3")
         )
 
