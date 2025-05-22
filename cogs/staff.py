@@ -53,7 +53,7 @@ class Staff(commands.Cog):
                 self.choice = None
 
                 self.select = discord.ui.Select(
-                    placeholder="**JA NÅ MÅ DU VELGE!**",
+                    placeholder="JA NÅ MÅ DU VELGE!",
                     options=[
                         discord.SelectOption(label="Noen du ikke vil ha med? TRYKK HER", value="avoid"),
                         discord.SelectOption(label="Ikke unngå noen", value="no_avoid")
@@ -89,7 +89,7 @@ class Staff(commands.Cog):
 
         # Dato-format: Torsdag 1.01.2011 - 00:00
         now = datetime.now()
-        dato_tekst = now.strftime("Dato: %A %d.%m.%Y - %H:%M")
+        dato_tekst = f"Dato: {now.strftime('%A %d.%m.%Y - %H:%M')}"
         embed = discord.Embed(
             title="**PERME SØKNAD** Staff som er valgt ut",
             description="Be Aasbu hente brillene, **Disse er valgt til å lese søknader.**",
