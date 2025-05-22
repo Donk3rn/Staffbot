@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 import random
-from datetime import datetime, timedelta
+from datetime import datetime
 
 ROLE_NAMES = {
     "Moderators": "Moderator",
@@ -10,7 +10,7 @@ ROLE_NAMES = {
     "Eier": "Eier"
 }
 
-class StaffCog(commands.Cog):
+class Staff(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -21,7 +21,7 @@ class StaffCog(commands.Cog):
                 super().__init__(timeout=60)
                 self.selected = []
                 self.select = discord.ui.Select(
-                    placeholder="Hvem skal unngås (Ja, Snip du kan velge fler)",
+                    placeholder="Velg hvem som skal unngås (kan velge flere)",
                     min_values=0,
                     max_values=len(members),
                     options=[
@@ -42,10 +42,10 @@ class StaffCog(commands.Cog):
                 self.choice = None
 
                 self.select = discord.ui.Select(
-                    placeholder="VELG EN TING A IDIOT",
+                    placeholder="Velg et alternativ",
                     options=[
-                        discord.SelectOption(label="Noen inhabil? Ja velg da", value="avoid"),
-                        discord.SelectOption(label="Ikke unngå noen!", value="no_avoid")
+                        discord.SelectOption(label="Unngå visse i staff", value="avoid"),
+                        discord.SelectOption(label="Ikke unngå noen", value="no_avoid")
                     ]
                 )
                 self.select.callback = self.select_callback
@@ -56,7 +56,7 @@ class StaffCog(commands.Cog):
                 self.stop()
 
         mode_view = ModeSelector()
-        msg = await ctx.send("Velg en ting daaaa:", view=mode_view)
+        msg = await ctx.send("Velg et alternativ:", view=mode_view)
         await mode_view.wait()
 
         avoid_ids = []
@@ -68,32 +68,20 @@ class StaffCog(commands.Cog):
                     all_staff_members.update(role.members)
 
             if not all_staff_members:
-                return await ctx.send("Merker jeg ikke fant noen med staff roller.")
+                return await ctx.send("Fant ingen medlemmer i staff-roller.")
 
             avoid_view = RoleSelector(list(all_staff_members))
-            avoid_msg = await ctx.send("Velg hvilke personer som skal ikke skal se ticketen:", view=avoid_view)
+            await ctx.send("Velg hvilke personer som skal unngås:", view=avoid_view)
             await avoid_view.wait()
-
             await msg.delete()
-            await avoid_msg.delete()
-
-            confirm_msg = await ctx.send("✅ Ja det er registrert.")
-            await discord.utils.sleep_until(datetime.utcnow() + timedelta(seconds=3))
-            await confirm_msg.delete()
-
             avoid_ids = avoid_view.selected
-        else:
-            await msg.delete()
-            confirm_msg = await ctx.send("✅ Jadaaa det er registrert.")
-            await discord.utils.sleep_until(datetime.utcnow() + timedelta(seconds=3))
-            await confirm_msg.delete()
 
         embed = discord.Embed(
             title="**PERME SØKNAD** Staff som er valgt ut",
             description="Disse er valgt til å lese søknader.",
             color=discord.Color.from_str("#00B7B3")
         )
-        embed.set_footer(text=f"Dato: {datetime.now().strftime('%A %d.%m.%Y %H:%M')}")
+        embed.set_footer(text=f"Dato: {datetime.now().strftime('%d.%m.%Y')}")
 
         for title, role_name in ROLE_NAMES.items():
             role = discord.utils.get(ctx.guild.roles, name=role_name)
@@ -108,4 +96,4 @@ class StaffCog(commands.Cog):
         await ctx.send(embed=embed)
 
 async def setup(bot):
-    await bot.add_cog(StaffCog(bot))
+    await bot.add_cog(Staff(bot))
