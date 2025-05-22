@@ -6,10 +6,10 @@ from dotenv import load_dotenv
 
 # Last inn miljøvariabler fra .env
 load_dotenv()
-TOKEN = os.getenv("DISCORD_BOT_TOKEN")
+TOKEN = os.getenv("DISCORD_TOKEN")
 
 if not TOKEN:
-    raise RuntimeError("DISCORD_BOT_TOKEN ikke satt i .env-filen!")
+    raise RuntimeError("DISCORD_TOKEN ikke satt i .env-filen!")
 
 intents = discord.Intents.default()
 intents.members = True
