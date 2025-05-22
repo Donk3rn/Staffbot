@@ -25,6 +25,7 @@ async def load_cogs():
 @bot.event
 async def on_ready():
     print(f"Botten er logget inn som {bot.user}!")
+    print("Tilgjengelige kommandoer:", [cmd.name for cmd in bot.commands])
 
 async def main():
     async with bot:
