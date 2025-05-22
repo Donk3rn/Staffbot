@@ -65,7 +65,7 @@ class Staff(commands.Cog):
                 self.choice = None
 
                 self.select = discord.ui.Select(
-                    placeholder="Unnskyld, kan du velge please.",
+                    placeholder="JA, SÅ VAR DET OG VELGE DA.",
                     options=[
                         discord.SelectOption(label="Noen innhabil TRYKK HER", value="avoid"),
                         discord.SelectOption(label="Alle, kan bli med jaaa", value="no_avoid"),
@@ -89,7 +89,7 @@ class Staff(commands.Cog):
 
         # Trinn 1: Velg modus
         mode_view = ModeSelector()
-        mode_msg = await ctx.send("JA, SÅ VAR DET OG VELGE DA", view=mode_view)
+        mode_msg = await ctx.send("Unnskyld, kan du velge please", view=mode_view)
         await mode_view.wait()
 
         try:
