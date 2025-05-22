@@ -2,12 +2,19 @@ import discord
 from discord.ext import commands
 import random
 from datetime import datetime
+import locale
+
+# Sett norsk locale for ukedag hvis mulig
+try:
+    locale.setlocale(locale.LC_TIME, "nb_NO.UTF-8")
+except:
+    pass  # fallback til standard om systemet ikke støtter norsk
 
 ROLE_NAMES = {
     "Moderators": "Moderator",
     "Senior Moderators": "Senior Moderator",
     "Admins": "Admin",
-    "Administrator": "Administrator", 
+    "Administrator": "Administrator",
     "Eier": "Eier"
 }
 
@@ -19,9 +26,10 @@ class Staff(commands.Cog):
     @commands.command()
     async def staff(self, ctx):
         class RoleSelector(discord.ui.View):
-            def __init__(self, members):
-                super().__init__(timeout=60)
+            def __init__(self, members, original_msg):
+                super().__init__(timeout=120)
                 self.selected = []
+                self.original_msg = original_msg
                 self.select = discord.ui.Select(
                     placeholder="Velg hvem som skal unngås (kan velge flere)",
                     min_values=0,
@@ -36,11 +44,12 @@ class Staff(commands.Cog):
 
             async def select_callback(self, interaction: discord.Interaction):
                 self.selected = self.select.values
+                await interaction.message.delete()
                 self.stop()
 
         class ModeSelector(discord.ui.View):
             def __init__(self):
-                super().__init__(timeout=30)
+                super().__init__(timeout=90)
                 self.choice = None
 
                 self.select = discord.ui.Select(
@@ -55,10 +64,11 @@ class Staff(commands.Cog):
 
             async def select_callback(self, interaction: discord.Interaction):
                 self.choice = self.select.values[0]
+                await interaction.message.delete()
                 self.stop()
 
         mode_view = ModeSelector()
-        msg = await ctx.send("Velg et alternativ:", view=mode_view)
+        mode_msg = await ctx.send("Velg et alternativ:", view=mode_view)
         await mode_view.wait()
 
         avoid_ids = []
@@ -72,18 +82,20 @@ class Staff(commands.Cog):
             if not all_staff_members:
                 return await ctx.send("Fant ingen medlemmer i staff-roller.")
 
-            avoid_view = RoleSelector(list(all_staff_members))
-            await ctx.send("Velg hvilke personer som skal unngås:", view=avoid_view)
+            avoid_view = RoleSelector(list(all_staff_members), original_msg=mode_msg)
+            avoid_msg = await ctx.send("Velg hvilke personer som skal unngås:", view=avoid_view)
             await avoid_view.wait()
-            await msg.delete()
             avoid_ids = avoid_view.selected
 
+        # Dato-format: Torsdag 22.05.2025 - 20:15
+        now = datetime.now()
+        dato_tekst = now.strftime("Dato: %A %d.%m.%Y - %H:%M")
         embed = discord.Embed(
             title="**PERME SØKNAD** Staff som er valgt ut",
             description="Disse er valgt til å lese søknader.",
             color=discord.Color.from_str("#00B7B3")
         )
-        embed.set_footer(text=f"Dato: {datetime.now().strftime('%d.%m.%Y')}")
+        embed.set_footer(text=dato_tekst)
 
         for title, role_name in ROLE_NAMES.items():
             role = discord.utils.get(ctx.guild.roles, name=role_name)
@@ -96,6 +108,7 @@ class Staff(commands.Cog):
             embed.add_field(name=f"**{title}**", value="\n".join(lines) if lines else "Ingen valgt", inline=False)
 
         await ctx.send(embed=embed)
+
 
 async def setup(bot):
     await bot.add_cog(Staff(bot))
