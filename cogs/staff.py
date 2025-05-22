@@ -4,10 +4,11 @@ import random
 from datetime import datetime
 import locale
 
+# Sett norsk locale for ukedag hvis mulig
 try:
     locale.setlocale(locale.LC_TIME, "nb_NO.UTF-8")
 except:
-    pass
+    pass  # fallback til manuell oversettelse
 
 ROLE_NAMES = {
     "Moderators": "Moderator",
@@ -17,6 +18,7 @@ ROLE_NAMES = {
     "Eier": "Eier"
 }
 
+# Manuell fallback for ukedager på norsk
 DAYS_NO = {
     "Monday": "Mandag",
     "Tuesday": "Tirsdag",
@@ -38,6 +40,7 @@ class Staff(commands.Cog):
             def __init__(self, members):
                 super().__init__(timeout=120)
                 self.selected = []
+
                 self.select = discord.ui.Select(
                     placeholder="Velg hvem som skal unngås (kan velge flere)",
                     min_values=0,
@@ -59,6 +62,7 @@ class Staff(commands.Cog):
             def __init__(self):
                 super().__init__(timeout=90)
                 self.choice = None
+
                 self.select = discord.ui.Select(
                     placeholder="Velg et alternativ",
                     options=[
@@ -74,18 +78,20 @@ class Staff(commands.Cog):
                 await interaction.message.delete()
                 self.stop()
 
-        # Første valg
+        # Trinn 1: Velg modus
         mode_view = ModeSelector()
         mode_msg = await ctx.send("Velg et alternativ:", view=mode_view)
         await mode_view.wait()
 
-        if not mode_view.choice:
-            try:
-                await mode_msg.delete()
-            except discord.NotFound:
-                pass
-            return
+        try:
+            await mode_msg.delete()
+        except discord.NotFound:
+            pass
 
+        if not mode_view.choice:
+            return  # Timeout
+
+        # Trinn 2: Hent hvem som skal unngås (valgfritt)
         avoid_ids = []
         if mode_view.choice == "avoid":
             all_staff_members = set()
@@ -101,16 +107,14 @@ class Staff(commands.Cog):
             avoid_msg = await ctx.send("Velg hvilke personer som skal unngås:", view=avoid_view)
             await avoid_view.wait()
 
-            if not avoid_view.selected:
-                try:
-                    await avoid_msg.delete()
-                except discord.NotFound:
-                    pass
-                return
+            try:
+                await avoid_msg.delete()
+            except discord.NotFound:
+                pass
 
             avoid_ids = avoid_view.selected
 
-        # Formatert dato
+        # Trinn 3: Lag embed med valgt staff
         now = datetime.now()
         weekday_en = now.strftime("%A")
         weekday_no = DAYS_NO.get(weekday_en, weekday_en)
@@ -126,4 +130,15 @@ class Staff(commands.Cog):
         for title, role_name in ROLE_NAMES.items():
             role = discord.utils.get(ctx.guild.roles, name=role_name)
             if not role:
-                co
+                continue
+            members = [m for m in role.members if str(m.id) not in avoid_ids]
+            count = 2 if title != "Eier" else 1
+            chosen = random.sample(members, min(len(members), count)) if members else []
+            lines = [f"{i+1}. {m.mention}" for i, m in enumerate(chosen)]
+            embed.add_field(name=f"**{title}**", value="\n".join(lines) if lines else "Ingen valgt", inline=False)
+
+        await ctx.send(embed=embed)
+
+
+async def setup(bot):
+    await bot.add_cog(Staff(bot))
