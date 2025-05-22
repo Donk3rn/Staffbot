@@ -29,6 +29,7 @@ DAYS_NO = {
     "Sunday": "Søndag"
 }
 
+
 class Staff(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -57,43 +58,47 @@ class Staff(commands.Cog):
                 await interaction.message.delete()
                 self.stop()
 
-class ModeSelector(discord.ui.View):
-    def __init__(self):
-        super().__init__(timeout=90)
-        self.choice = None
+        class ModeSelector(discord.ui.View):
+            def __init__(self):
+                super().__init__(timeout=90)
+                self.choice = None
 
-        self.select = discord.ui.Select(
-            placeholder="Velg et alternativ",
-            options=[
-                discord.SelectOption(label="Unngå visse i staff", value="avoid"),
-                discord.SelectOption(label="Ikke unngå noen", value="no_avoid"),
-                discord.SelectOption(label="Ingen", value="none")
-            ]
-        )
-        self.select.callback = self.select_callback
-        self.add_item(self.select)
+                self.select = discord.ui.Select(
+                    placeholder="Velg et alternativ",
+                    options=[
+                        discord.SelectOption(label="Unngå visse i staff", value="avoid"),
+                        discord.SelectOption(label="Ikke unngå noen", value="no_avoid"),
+                        discord.SelectOption(label="Ingen", value="none")
+                    ]
+                )
+                self.select.callback = self.select_callback
+                self.add_item(self.select)
 
-    async def select_callback(self, interaction: discord.Interaction):
-        self.choice = self.select.values[0]
-        await interaction.message.delete()
-        if self.choice == "none":
-            # Stopper uten å gjøre noe mer
-            self.stop()
-            return
-        self.stop()
+            async def select_callback(self, interaction: discord.Interaction):
+                self.choice = self.select.values[0]
+                await interaction.message.delete()
+                # Hvis "Ingen" er valgt, stopp og avslutt uten videre
+                if self.choice == "none":
+                    self.stop()
+                    return
+                self.stop()
 
         # Trinn 1: Velg modus
         mode_view = ModeSelector()
         mode_msg = await ctx.send("Velg et alternativ:", view=mode_view)
         await mode_view.wait()
 
-        try:
-            await mode_msg.delete()
-        except discord.NotFound:
-            pass
-
+        # Hvis bruker ikke valgte noe eller timeout
         if not mode_view.choice:
-            return  # Timeout
+            try:
+                await mode_msg.delete()
+            except discord.NotFound:
+                pass
+            return
+
+        # Hvis "Ingen" er valgt, avslutt tidlig uten å gjøre noe
+        if mode_view.choice == "none":
+            return
 
         # Trinn 2: Hent hvem som skal unngås (valgfritt)
         avoid_ids = []
