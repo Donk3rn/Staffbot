@@ -31,7 +31,7 @@ class Staff(commands.Cog):
                 self.selected = []
                 self.original_msg = original_msg
                 self.select = discord.ui.Select(
-                    placeholder="Velg hvem som skal unngås (kan velge flere)",
+                    placeholder="Hvem skal ikke bli med (Ja Snip, du kan velge flere)",
                     min_values=0,
                     max_values=len(members),
                     options=[
@@ -53,9 +53,9 @@ class Staff(commands.Cog):
                 self.choice = None
 
                 self.select = discord.ui.Select(
-                    placeholder="Velg et alternativ",
+                    placeholder="**JA NÅ MÅ DU VELGE!**",
                     options=[
-                        discord.SelectOption(label="Unngå visse i staff", value="avoid"),
+                        discord.SelectOption(label="Noen du ikke vil ha med? TRYKK HER", value="avoid"),
                         discord.SelectOption(label="Ikke unngå noen", value="no_avoid")
                     ]
                 )
@@ -68,7 +68,7 @@ class Staff(commands.Cog):
                 self.stop()
 
         mode_view = ModeSelector()
-        mode_msg = await ctx.send("Velg et alternativ:", view=mode_view)
+        mode_msg = await ctx.send("JADA, VELG NÅ:", view=mode_view)
         await mode_view.wait()
 
         avoid_ids = []
@@ -80,19 +80,19 @@ class Staff(commands.Cog):
                     all_staff_members.update(role.members)
 
             if not all_staff_members:
-                return await ctx.send("Fant ingen medlemmer i staff-roller.")
+                return await ctx.send("Mashalla, fant ingen, noe er gærnt.")
 
             avoid_view = RoleSelector(list(all_staff_members), original_msg=mode_msg)
-            avoid_msg = await ctx.send("Velg hvilke personer som skal unngås:", view=avoid_view)
+            avoid_msg = await ctx.send("Hvem skal ikke bli med? :", view=avoid_view)
             await avoid_view.wait()
             avoid_ids = avoid_view.selected
 
-        # Dato-format: Torsdag 22.05.2025 - 20:15
+        # Dato-format: Torsdag 1.01.2011 - 00:00
         now = datetime.now()
         dato_tekst = now.strftime("Dato: %A %d.%m.%Y - %H:%M")
         embed = discord.Embed(
             title="**PERME SØKNAD** Staff som er valgt ut",
-            description="Disse er valgt til å lese søknader.",
+            description="Be Aasbu hente brillene, **Disse er valgt til å lese søknader.**",
             color=discord.Color.from_str("#00B7B3")
         )
         embed.set_footer(text=dato_tekst)
