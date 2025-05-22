@@ -4,11 +4,10 @@ import random
 from datetime import datetime
 import locale
 
-# Sett norsk locale for ukedag hvis mulig
 try:
     locale.setlocale(locale.LC_TIME, "nb_NO.UTF-8")
 except:
-    pass  # fallback til standard om systemet ikke støtter norsk
+    pass
 
 ROLE_NAMES = {
     "Moderators": "Moderator",
@@ -16,6 +15,16 @@ ROLE_NAMES = {
     "Admins": "Admin",
     "Administrator": "Administrator",
     "Eier": "Eier"
+}
+
+DAYS_NO = {
+    "Monday": "Mandag",
+    "Tuesday": "Tirsdag",
+    "Wednesday": "Onsdag",
+    "Thursday": "Torsdag",
+    "Friday": "Fredag",
+    "Saturday": "Lørdag",
+    "Sunday": "Søndag"
 }
 
 
@@ -26,12 +35,11 @@ class Staff(commands.Cog):
     @commands.command()
     async def staff(self, ctx):
         class RoleSelector(discord.ui.View):
-            def __init__(self, members, original_msg):
+            def __init__(self, members):
                 super().__init__(timeout=120)
                 self.selected = []
-                self.original_msg = original_msg
                 self.select = discord.ui.Select(
-                    placeholder="Hvem skal ikke bli med (Ja Snip, du kan velge flere)",
+                    placeholder="Velg hvem som skal unngås (kan velge flere)",
                     min_values=0,
                     max_values=len(members),
                     options=[
@@ -51,11 +59,10 @@ class Staff(commands.Cog):
             def __init__(self):
                 super().__init__(timeout=90)
                 self.choice = None
-
                 self.select = discord.ui.Select(
-                    placeholder="JA NÅ MÅ DU VELGE!",
+                    placeholder="Velg et alternativ",
                     options=[
-                        discord.SelectOption(label="Noen du ikke vil ha med? TRYKK HER", value="avoid"),
+                        discord.SelectOption(label="Unngå visse i staff", value="avoid"),
                         discord.SelectOption(label="Ikke unngå noen", value="no_avoid")
                     ]
                 )
@@ -67,9 +74,17 @@ class Staff(commands.Cog):
                 await interaction.message.delete()
                 self.stop()
 
+        # Første valg
         mode_view = ModeSelector()
-        mode_msg = await ctx.send("JADA, VELG NÅ:", view=mode_view)
+        mode_msg = await ctx.send("Velg et alternativ:", view=mode_view)
         await mode_view.wait()
+
+        if not mode_view.choice:
+            try:
+                await mode_msg.delete()
+            except discord.NotFound:
+                pass
+            return
 
         avoid_ids = []
         if mode_view.choice == "avoid":
@@ -80,19 +95,30 @@ class Staff(commands.Cog):
                     all_staff_members.update(role.members)
 
             if not all_staff_members:
-                return await ctx.send("Mashalla, fant ingen, noe er gærnt.")
+                return await ctx.send("Fant ingen medlemmer i staff-roller.")
 
-            avoid_view = RoleSelector(list(all_staff_members), original_msg=mode_msg)
-            avoid_msg = await ctx.send("Hvem skal ikke bli med? :", view=avoid_view)
+            avoid_view = RoleSelector(list(all_staff_members))
+            avoid_msg = await ctx.send("Velg hvilke personer som skal unngås:", view=avoid_view)
             await avoid_view.wait()
+
+            if not avoid_view.selected:
+                try:
+                    await avoid_msg.delete()
+                except discord.NotFound:
+                    pass
+                return
+
             avoid_ids = avoid_view.selected
 
-        # Dato-format: Torsdag 1.01.2011 - 00:00
+        # Formatert dato
         now = datetime.now()
-        dato_tekst = f"Dato: {now.strftime('%A %d.%m.%Y - %H:%M')}"
+        weekday_en = now.strftime("%A")
+        weekday_no = DAYS_NO.get(weekday_en, weekday_en)
+        dato_tekst = f"Dato: {weekday_no} {now.strftime('%d.%m.%Y - %H:%M')}"
+
         embed = discord.Embed(
             title="**PERME SØKNAD** Staff som er valgt ut",
-            description="Be Aasbu hente brillene, **Disse er valgt til å lese søknader.**",
+            description="Disse er valgt til å lese søknader.",
             color=discord.Color.from_str("#00B7B3")
         )
         embed.set_footer(text=dato_tekst)
@@ -100,15 +126,4 @@ class Staff(commands.Cog):
         for title, role_name in ROLE_NAMES.items():
             role = discord.utils.get(ctx.guild.roles, name=role_name)
             if not role:
-                continue
-            members = [m for m in role.members if str(m.id) not in avoid_ids]
-            count = 2 if title != "Eier" else 1
-            chosen = random.sample(members, min(len(members), count)) if members else []
-            lines = [f"{i+1}. {m.mention}" for i, m in enumerate(chosen)]
-            embed.add_field(name=f"**{title}**", value="\n".join(lines) if lines else "Ingen valgt", inline=False)
-
-        await ctx.send(embed=embed)
-
-
-async def setup(bot):
-    await bot.add_cog(Staff(bot))
+                co
