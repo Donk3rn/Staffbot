@@ -57,25 +57,30 @@ class Staff(commands.Cog):
                 await interaction.message.delete()
                 self.stop()
 
-        class ModeSelector(discord.ui.View):
-            def __init__(self):
-                super().__init__(timeout=90)
-                self.choice = None
+class ModeSelector(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=90)
+        self.choice = None
 
-                self.select = discord.ui.Select(
-                    placeholder="Velg et alternativ",
-                    options=[
-                        discord.SelectOption(label="Unngå visse i staff", value="avoid"),
-                        discord.SelectOption(label="Ikke unngå noen", value="no_avoid")
-                    ]
-                )
-                self.select.callback = self.select_callback
-                self.add_item(self.select)
+        self.select = discord.ui.Select(
+            placeholder="Velg et alternativ",
+            options=[
+                discord.SelectOption(label="Unngå visse i staff", value="avoid"),
+                discord.SelectOption(label="Ikke unngå noen", value="no_avoid"),
+                discord.SelectOption(label="Ingen", value="none")
+            ]
+        )
+        self.select.callback = self.select_callback
+        self.add_item(self.select)
 
-            async def select_callback(self, interaction: discord.Interaction):
-                self.choice = self.select.values[0]
-                await interaction.message.delete()
-                self.stop()
+    async def select_callback(self, interaction: discord.Interaction):
+        self.choice = self.select.values[0]
+        await interaction.message.delete()
+        if self.choice == "none":
+            # Stopper uten å gjøre noe mer
+            self.stop()
+            return
+        self.stop()
 
         # Trinn 1: Velg modus
         mode_view = ModeSelector()
